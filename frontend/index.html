@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peak Pee</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            margin: 20px 0 10px 0;
+        }
+        
+        input, textarea, button {
+            font-family: inherit;
+            font-size: 14px;
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+            border: 1px solid #ccc;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: auto;
+            padding: 10px 20px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .error {
+            color: red;
+            background: #ffeeee;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid red;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .stat-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .location-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .button-group {
+            margin: 10px 0;
+        }
+        
+        .button-group button {
+            margin-right: 10px;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .delete-btn {
+            background: #dc3545;
+            padding: 5px 10px;
+        }
+        
+        hr {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Authentication Screens -->
+    <div id="authContainer">
+        <!-- Login Form -->
+        <div id="loginForm">
+            <h1>Peak Pee</h1>
+            <p>Track your adventure moments</p>
+            
+            <div id="loginError" class="error hidden"></div>
+            
+            <form onsubmit="handleLogin(event)">
+                <label>Email</label>
+                <input type="email" id="loginEmail" required placeholder="your@email.com">
+                
+                <label>Password</label>
+                <input type="password" id="loginPassword" required placeholder="password">
+                
+                <button type="submit">Login</button>
+            </form>
+            
+            <p>
+                Don't have an account? 
+                <a href="#" onclick="showRegisterForm(); return false;">Sign up</a>
+            </p>
+        </div>
+        
+        <!-- Register Form -->
+        <div id="registerForm" class="hidden">
+            <h1>Create Account</h1>
+            <p>Start tracking your adventures</p>
+            
+            <div id="registerError" class="error hidden"></div>
+            
+            <form onsubmit="handleRegister(event)">
+                <label>Username</label>
+                <input type="text" id="registerUsername" required minlength="3" placeholder="username">
+                
+                <label>Email</label>
+                <input type="email" id="registerEmail" required placeholder="your@email.com">
+                
+                <label>Password</label>
+                <input type="password" id="registerPassword" required minlength="6" placeholder="password (min 6 chars)">
+                
+                <button type="submit">Create Account</button>
+            </form>
+            
+            <p>
+                Already have an account? 
+                <a href="#" onclick="showLoginForm(); return false;">Login</a>
+            </p>
+        </div>
+    </div>
+    
+    <!-- Main App (hidden until authenticated) -->
+    <div id="mainApp" class="hidden">
+        <h1>Peak Pee</h1>
+        <p>Logged in as: <strong id="currentUsername">-</strong></p>
+        <button onclick="logout()" class="logout-btn">Logout</button>
+        
+        <hr>
+        
+        <!-- Stats -->
+        <h2>Your Stats</h2>
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value" id="totalPoints">0</div>
+                <div>Total Points</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="highestAltitude">-</div>
+                <div>Highest (m)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="lowestAltitude">-</div>
+                <div>Lowest (m)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="avgAltitude">-</div>
+                <div>Average (m)</div>
+            </div>
+        </div>
+        
+        <!-- Capture Button -->
+        <h2>Capture Location</h2>
+        <button id="captureBtn" onclick="captureLocation()">Capture This Moment</button>
+        <p id="statusText">Click to save your current location</p>
+        
+        <!-- Locations List -->
+        <h2>Your Locations</h2>
+        <button onclick="clearAllLocations()" class="delete-btn">Clear All</button>
+        <div id="locationsList"></div>
+    </div>
+    
+    <!-- Add Location Modal -->
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <h3>Add a Note (Optional)</h3>
+            <textarea id="noteInput" rows="3" placeholder="What made this moment special?"></textarea>
+            <div class="button-group">
+                <button onclick="saveLocationWithNote()">Save</button>
+                <button onclick="closeNoteModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
